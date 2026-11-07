@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -65,7 +66,6 @@ final class PreferencesPanel extends JPanel implements KeyListener, DisposableIn
 		final double screenHeight = LookAndFeelManager.getScreenSize().getHeight();
 		final Dimension preferedFrameSize = new Dimension(600, (int) Math.min(610, screenHeight * 0.8));
 
-		this.tabbedPane.setPreferredSize(preferedFrameSize);
 		this.tabbedPane.addKeyListener(this);
 
 		int count = this.tabbedPane.getTabCount();
@@ -123,6 +123,18 @@ final class PreferencesPanel extends JPanel implements KeyListener, DisposableIn
 		this.tabbedPane.setMnemonicAt(count, KeyEvent.VK_N);
 
 		this.tabbedPane.setSelectedIndex(selectedTabIndex);
+
+		// Todas las pestanas en una sola fila: se mide lo que ocupan con el tema activo y se
+		// ensancha el panel para que quepan. Si la pantalla no da para tanto, se desplazan.
+		this.tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+		this.tabbedPane.setSize(Short.MAX_VALUE, preferedFrameSize.height);
+		this.tabbedPane.doLayout();
+		final Rectangle firstTab = this.tabbedPane.getBoundsAt(0);
+		final Rectangle lastTab = this.tabbedPane.getBoundsAt(this.tabbedPane.getTabCount() - 1);
+		final int tabsWidth = lastTab.x + lastTab.width + firstTab.x;
+		final int screenWidth = (int) LookAndFeelManager.getScreenSize().getWidth();
+		preferedFrameSize.width = Math.min((int) (screenWidth * 0.9), Math.max(preferedFrameSize.width, tabsWidth));
+		this.tabbedPane.setPreferredSize(preferedFrameSize);
 
 		setLayout(new GridBagLayout());
 
