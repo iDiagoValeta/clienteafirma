@@ -22,6 +22,9 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+
 import es.gob.afirma.core.misc.Platform;
 import es.gob.afirma.core.misc.Platform.OS;
 
@@ -36,11 +39,13 @@ public final class LookAndFeelManager {
 		// No permitimos la instanciacion
 	}
 
-    /** Color de fondo por defecto para los JPanel, JFrame y Applet. */
-    public static final Color DEFAULT_COLOR;
+    /** Color de fondo por defecto para los JPanel, JFrame y Applet.
+     * Se recalcula desde el tema activo al aplicar el Look&amp;Feel. */
+    public static Color DEFAULT_COLOR;
 
-    /** Color de fondo secundario para los JPanel, JFrame y Applet. */
-    public static final Color SECUNDARY_COLOR;
+    /** Color de fondo secundario (superficie elevada) para los JPanel, JFrame y Applet.
+     * Se recalcula desde el tema activo al aplicar el Look&amp;Feel. */
+    public static Color SECUNDARY_COLOR;
 
     /** Color transparente. */
     public static final Color TRANSPARENT_COLOR = new Color(255, 255, 255, 0);
@@ -124,56 +129,66 @@ public final class LookAndFeelManager {
     	if (applied && !force) {
     		return;
     	}
-    	// Comprobamos si esta activado algun modo de accesibilidad. Si es asi,
-    	// usaremos el LookAndFeel del sistema
-        final boolean useSystemLookAndFeel = WINDOWS_HIGH_CONTRAST || LARGE_FONT || GNOME_DARK_MODE;
+    	// En Windows con alto contraste respetamos el Look&Feel del sistema por accesibilidad
+    	if (WINDOWS_HIGH_CONTRAST) {
+    		try {
+    			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    		}
+    		catch (final Exception e2) {
+    			LOGGER.warning("No se ha podido establecer el 'Look&Feel' del sistema: " + e2); //$NON-NLS-1$
+    		}
+    		refreshThemeColors();
+    		applied = true;
+    		return;
+    	}
 
-        if (!useSystemLookAndFeel) {
-            UIManager.put("Button.defaultButtonFollowsFocus", Boolean.TRUE); //$NON-NLS-1$
-            UIManager.put("RootPane.background", DEFAULT_COLOR); //$NON-NLS-1$
-            UIManager.put("TextPane.background", DEFAULT_COLOR); //$NON-NLS-1$
-            UIManager.put("TextArea.background", DEFAULT_COLOR); //$NON-NLS-1$
-            UIManager.put("InternalFrameTitlePane.background", DEFAULT_COLOR); //$NON-NLS-1$
-            UIManager.put("InternalFrame.background", DEFAULT_COLOR); //$NON-NLS-1$
-            UIManager.put("Label.background", DEFAULT_COLOR); //$NON-NLS-1$
-            UIManager.put("PopupMenuSeparator.background", DEFAULT_COLOR); //$NON-NLS-1$
-        }
+    	// Tema plano y moderno (FlatLaf), en version clara u oscura segun el tema del sistema.
+    	// FlatLaf ademas escala correctamente en pantallas HiDPI.
+    	try {
+    		if (GNOME_DARK_MODE) {
+    			FlatDarkLaf.setup();
+    		}
+    		else {
+    			FlatLightLaf.setup();
+    		}
+    		// Ajustes para dar aire a la interfaz
+    		UIManager.put("Button.arc", Integer.valueOf(6)); //$NON-NLS-1$
+    		UIManager.put("Component.arc", Integer.valueOf(6)); //$NON-NLS-1$
+    		UIManager.put("ScrollBar.showButtons", Boolean.FALSE); //$NON-NLS-1$
+    		UIManager.put("Button.defaultButtonFollowsFocus", Boolean.TRUE); //$NON-NLS-1$
+    	}
+    	catch (final Exception e) {
+    		LOGGER.warning("No se ha podido aplicar FlatLaf, se usara Nimbus: " + e); //$NON-NLS-1$
+    		setLookAndFeel("Nimbus"); //$NON-NLS-1$
+    	}
 
-        JFrame.setDefaultLookAndFeelDecorated(true);
-        JDialog.setDefaultLookAndFeelDecorated(true);
+    	// Dejamos que el sistema operativo dibuje las decoraciones de ventana (integracion nativa)
+    	JFrame.setDefaultLookAndFeelDecorated(false);
+    	JDialog.setDefaultLookAndFeelDecorated(false);
 
-        // Propiedades especificas para Mac OS X
-        if (Platform.OS.MACOSX.equals(Platform.getOS())) {
-            UIManager.put("OptionPane.background", DEFAULT_COLOR); //$NON-NLS-1$
-            UIManager.put("Panel.background", DEFAULT_COLOR); //$NON-NLS-1$
-            System.setProperty("apple.awt.brushMetalLook", "true"); //$NON-NLS-1$ //$NON-NLS-2$
-            System.setProperty("apple.awt.antialiasing", "true"); //$NON-NLS-1$ //$NON-NLS-2$
-            System.setProperty("apple.awt.textantialiasing", "true"); //$NON-NLS-1$ //$NON-NLS-2$
-            System.setProperty("apple.awt.rendering", "quality"); //$NON-NLS-1$ //$NON-NLS-2$
-            System.setProperty("apple.awt.graphics.EnableQ2DX", "true"); //$NON-NLS-1$ //$NON-NLS-2$
-            System.setProperty("apple.awt.graphics.EnableDeferredUpdates", "true"); //$NON-NLS-1$ //$NON-NLS-2$
-            System.setProperty("apple.laf.useScreenMenuBar", "true"); //$NON-NLS-1$ //$NON-NLS-2$
-        }
-        // Configuracion necesaria para que la aplicacion se muestre correctamente en pantallas HDPI
-        else if (Platform.OS.WINDOWS.equals(Platform.getOS()) && HDPIManager.isHDPIDevice()) {
-           	setLookAndFeel("Metal"); //$NON-NLS-1$
-        }
-        // Configuramos el Look&Feel del sistema si se considero necesario por los modos de accesibilidad
-        else if(useSystemLookAndFeel){
-        	try {
-        		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        	}
-        	catch (final Exception e2) {
-        		LOGGER.warning(
-        				"No se ha podido establecer ningun 'Look&Feel': " + e2 //$NON-NLS-1$
-        				);
-        	}
-        }
-        else {
-        	setLookAndFeel("Nimbus"); //$NON-NLS-1$
-        }
+    	// Propiedades especificas para Mac OS X
+    	if (Platform.OS.MACOSX.equals(Platform.getOS())) {
+    		System.setProperty("apple.awt.antialiasing", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+    		System.setProperty("apple.awt.textantialiasing", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+    		System.setProperty("apple.laf.useScreenMenuBar", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+    	}
 
-        applied = true;
+    	refreshThemeColors();
+    	applied = true;
+    }
+
+    /** Recalcula los colores base a partir del tema actualmente activo, de modo que
+     * los paneles que los usan se integren con el Look&amp;Feel claro u oscuro. */
+    private static void refreshThemeColors() {
+    	final Color panelBg = UIManager.getColor("Panel.background"); //$NON-NLS-1$
+    	if (panelBg != null) {
+    		DEFAULT_COLOR = new Color(panelBg.getRGB());
+    	}
+    	// Superficie elevada: fondo de los campos de texto (claro sobre fondo claro, oscuro sobre fondo oscuro)
+    	final Color surface = UIManager.getColor("TextField.background"); //$NON-NLS-1$
+    	if (surface != null) {
+    		SECUNDARY_COLOR = new Color(surface.getRGB());
+    	}
     }
 
     //Define el look and feel
