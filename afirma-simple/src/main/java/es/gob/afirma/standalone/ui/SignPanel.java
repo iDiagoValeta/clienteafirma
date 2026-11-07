@@ -44,6 +44,7 @@ import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 
 import javax.swing.BorderFactory;
+import javax.swing.UIManager;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -977,12 +978,14 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 	        selectPanel.add(SignPanel.this.getSelectButton());
 	        this.add(selectPanel, BorderLayout.PAGE_END);
 
+	        // Resaltamos el titulo de bienvenida manteniendo el color del tema (claro u oscuro)
+	        welcomeLabel.setFont(welcomeLabel.getFont().deriveFont(Font.BOLD));
+
 	        // Configuramos el color
 	        if (!LookAndFeelManager.WINDOWS_HIGH_CONTRAST) {
 	            this.setBackground(LookAndFeelManager.DEFAULT_COLOR);
 	            introPanel.setBackground(LookAndFeelManager.DEFAULT_COLOR);
 	            selectPanel.setBackground(LookAndFeelManager.DEFAULT_COLOR);
-	            welcomeLabel.setForeground(new Color(3399));
 	        }
 
 	    }
@@ -1033,8 +1036,11 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 	        this.filePanel.setBackground(bgColor);
 	        this.filePanel.getViewport().setBackground(bgColor);
 
-	        final Color lineBorderColor = LookAndFeelManager.WINDOWS_HIGH_CONTRAST ? Color.WHITE : Color.GRAY;
-	        this.filePanel.setBorder(BorderFactory.createLineBorder(lineBorderColor));
+	        final Color themeBorder = UIManager.getColor("Component.borderColor"); //$NON-NLS-1$
+	        final Color lineBorderColor = LookAndFeelManager.WINDOWS_HIGH_CONTRAST ? Color.WHITE
+	        		: themeBorder != null ? themeBorder : Color.GRAY;
+	        // Borde discontinuo para indicar que es una zona donde soltar ficheros
+	        this.filePanel.setBorder(BorderFactory.createDashedBorder(lineBorderColor, 3f, 3f));
 
 	        this.filePanel.getHorizontalScrollBar().setUnitIncrement(30);
 	        this.filePanel.getVerticalScrollBar().setUnitIncrement(30);
@@ -1072,11 +1078,13 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 				}
 			);
 
-	        // Establecemos la configuracion de color
+	        // Establecemos la configuracion de color: la zona de soltado se integra con el
+	        // tema y el texto de ayuda se muestra atenuado
 	        if (!LookAndFeelManager.WINDOWS_HIGH_CONTRAST) {
 	            this.setBackground(LookAndFeelManager.DEFAULT_COLOR);
-	            panel.setBackground(Color.DARK_GRAY);
-	            panel.setForeground(Color.LIGHT_GRAY);
+	            panel.setBackground(LookAndFeelManager.DEFAULT_COLOR);
+	            final Color hintColor = UIManager.getColor("Label.disabledForeground"); //$NON-NLS-1$
+	            panel.setForeground(hintColor != null ? hintColor : Color.GRAY);
 	            buttonPanel.setBackground(LookAndFeelManager.DEFAULT_COLOR);
 	        }
 

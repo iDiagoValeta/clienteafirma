@@ -22,7 +22,14 @@
 	</properties>
 
 	<dependencies>
-	
+
+		<!-- Tema plano y moderno para Swing, con soporte de modo claro/oscuro -->
+		<dependency>
+			<groupId>com.formdev</groupId>
+			<artifactId>flatlaf</artifactId>
+			<version>3.6.1</version>
+		</dependency>
+
 		<!-- Permite usar JPEG mal formados con PDFBox -->
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
