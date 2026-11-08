@@ -17,3 +17,5 @@ The `env=install` profile produces the shaded fat jar `afirma-simple/target/auto
 Palette: grafito. Chosen 2026-11-07: monochrome, identity from typography and spacing, follows the system light/dark theme.
 
 Implemented with FlatLaf (`com.formdev:flatlaf`, Apache-2.0). `LookAndFeelManager` installs `FlatLightLaf`/`FlatDarkLaf` by the system theme (`GNOME_DARK_MODE`), keeps the system L&F only for Windows high-contrast, and recomputes `DEFAULT_COLOR`/`SECUNDARY_COLOR` from the active theme. `SignPanel` no longer hardcodes the welcome colour or the dark-grey drop area; the drop zone uses a dashed themed border and muted hint text. `PreferencesPanel` keeps all tabs in one row (`SCROLL_TAB_LAYOUT`) and widens the dialog to the measured width of the tabs, capped at 90% of the screen.
+
+Typography is Inter (`flatlaf-fonts-inter`) at base size +1; the FlatLaf accent is set to grey (`@accentColor`) so primary buttons, focus and selection stay monochrome. Primary actions use `SignPanel.PRIMARY_BUTTON_STYLE`. The main screen shows a one-line summary with the full legal notice folded behind "More information", and the file selection button lives inside the drop zone.

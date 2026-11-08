@@ -125,6 +125,11 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 
     private final JButton selectButton = new JButton();
 
+    /** Estilo FlatLaf de la accion principal: relleno con el acento grafito del tema. */
+    static final String PRIMARY_BUTTON_STYLE = "background: $Button.default.background; " //$NON-NLS-1$
+    		+ "foreground: $Button.default.foreground; borderColor: $Button.default.borderColor; " //$NON-NLS-1$
+    		+ "font: bold; margin: 8,22,8,22"; //$NON-NLS-1$
+
     private final SimpleAfirma saf;
 
 	private List<SignOperationConfig> signOperationConfigs;
@@ -922,8 +927,8 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 	    }
 
 		private void createUI() {
-	        this.setLayout(new BorderLayout(5, 5));
-	        this.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+	        this.setLayout(new BorderLayout(0, 6));
+	        this.setBorder(BorderFactory.createEmptyBorder(28, 32, 12, 32));
 
 	        SignPanel.this.getSelectButton().setText(SimpleAfirmaMessages.getString("SignPanel.32")); //$NON-NLS-1$
 	        SignPanel.this.getSelectButton().setMnemonic('S');
@@ -959,33 +964,59 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 
 	        final JLabel welcomeLabel = new JLabel(SimpleAfirmaMessages.getString("SignPanel.14")); //$NON-NLS-1$
 	        welcomeLabel.setFocusable(false);
-	        welcomeLabel.setFont(welcomeLabel.getFont().deriveFont(Font.PLAIN, 26));
+	        welcomeLabel.setFont(welcomeLabel.getFont().deriveFont(Font.BOLD, welcomeLabel.getFont().getSize2D() + 12f));
 	        welcomeLabel.setLabelFor(SignPanel.this.getSelectButton());
 	        this.add(welcomeLabel, BorderLayout.PAGE_START);
 
+	        // El aviso legal completo queda plegado tras un resumen de una linea para no
+	        // tapar la accion principal; se despliega con "Mas informacion"
 	        final String intro = SimpleAfirmaMessages.getString("SignPanel.40"); //$NON-NLS-1$
-
-	        final JLabel introText = new JLabel(intro);
-	        introText.setLabelFor(SignPanel.this.getSelectButton());
-	        introText.setFocusable(false);
 	        this.getAccessibleContext().setAccessibleDescription(intro);
 
-	        final JPanel introPanel = new JPanel(new BorderLayout());
-	        introPanel.add(introText, BorderLayout.PAGE_START);
+	        final Color mutedColor = UIManager.getColor("Label.disabledForeground"); //$NON-NLS-1$
+
+	        final JLabel summaryText = new JLabel(SimpleAfirmaMessages.getString("SignPanel.200")); //$NON-NLS-1$
+	        summaryText.setFont(summaryText.getFont().deriveFont(summaryText.getFont().getSize2D() + 1f));
+	        summaryText.setFocusable(false);
+
+	        final JLabel introText = new JLabel(intro.replaceFirst("(?i)<html>", "<html><body style='width:440px'>")); //$NON-NLS-1$ //$NON-NLS-2$
+	        introText.setLabelFor(SignPanel.this.getSelectButton());
+	        introText.setFocusable(false);
+	        introText.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+	        if (mutedColor != null && !LookAndFeelManager.WINDOWS_HIGH_CONTRAST) {
+	        	introText.setForeground(mutedColor);
+	        }
+	        introText.setVisible(false);
+
+	        final String moreInfo = SimpleAfirmaMessages.getString("SignPanel.202"); //$NON-NLS-1$
+	        final String lessInfo = SimpleAfirmaMessages.getString("SignPanel.203"); //$NON-NLS-1$
+	        final JButton moreButton = new JButton(moreInfo);
+	        moreButton.putClientProperty("JButton.buttonType", "borderless"); //$NON-NLS-1$ //$NON-NLS-2$
+	        moreButton.setBorder(BorderFactory.createEmptyBorder(3, 6, 3, 6));
+	        moreButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	        moreButton.addActionListener(e -> {
+	        	introText.setVisible(!introText.isVisible());
+	        	moreButton.setText(introText.isVisible() ? lessInfo : moreInfo);
+	        	revalidate();
+	        });
+
+	        final JPanel introPanel = new JPanel(new GridBagLayout());
+	        final GridBagConstraints c = new GridBagConstraints();
+	        c.gridx = 0;
+	        c.anchor = GridBagConstraints.LINE_START;
+	        c.weightx = 1.0;
+	        introPanel.add(summaryText, c);
+	        // Sangria negativa para alinear el texto del enlace con el resumen pese a su relleno
+	        c.insets = new Insets(2, -6, 0, 0);
+	        introPanel.add(moreButton, c);
+	        c.insets = new Insets(0, 0, 0, 0);
+	        introPanel.add(introText, c);
 	        this.add(introPanel, BorderLayout.CENTER);
-
-	        final JPanel selectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT), true);
-	        selectPanel.add(SignPanel.this.getSelectButton());
-	        this.add(selectPanel, BorderLayout.PAGE_END);
-
-	        // Resaltamos el titulo de bienvenida manteniendo el color del tema (claro u oscuro)
-	        welcomeLabel.setFont(welcomeLabel.getFont().deriveFont(Font.BOLD));
 
 	        // Configuramos el color
 	        if (!LookAndFeelManager.WINDOWS_HIGH_CONTRAST) {
 	            this.setBackground(LookAndFeelManager.DEFAULT_COLOR);
 	            introPanel.setBackground(LookAndFeelManager.DEFAULT_COLOR);
-	            selectPanel.setBackground(LookAndFeelManager.DEFAULT_COLOR);
 	        }
 
 	    }
@@ -1011,8 +1042,8 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 	    }
 
 	    void createUI() {
-	        this.setLayout(new BorderLayout(5, 5));
-	        this.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+	        this.setLayout(new BorderLayout(0, 16));
+	        this.setBorder(BorderFactory.createEmptyBorder(12, 32, 24, 32));
 
 	        // Identificamos el color de fondo
 	        Color bgColor = Color.WHITE;
@@ -1020,7 +1051,17 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 	        	bgColor = LookAndFeelManager.DEFAULT_COLOR;
 	        }
 
-	        final JPanel panel = new ResizingTextPanel(SimpleAfirmaMessages.getString("SignPanel.41")); //$NON-NLS-1$
+	        // Zona de soltado: indicacion y boton de seleccion centrados en la misma tarjeta
+	        final JPanel panel = new JPanel(new GridBagLayout());
+	        final JLabel hintLabel = new JLabel(SimpleAfirmaMessages.getString("SignPanel.201")); //$NON-NLS-1$
+	        hintLabel.setFont(hintLabel.getFont().deriveFont(hintLabel.getFont().getSize2D() + 3f));
+	        final GridBagConstraints c = new GridBagConstraints();
+	        c.gridx = 0;
+	        c.insets = new Insets(0, 0, 14, 0);
+	        panel.add(hintLabel, c);
+	        c.insets = new Insets(0, 0, 0, 0);
+	        SignPanel.this.getSelectButton().putClientProperty("FlatLaf.style", PRIMARY_BUTTON_STYLE); //$NON-NLS-1$
+	        panel.add(SignPanel.this.getSelectButton(), c);
 	        panel.getAccessibleContext().setAccessibleDescription(SimpleAfirmaMessages.getString("SignPanel.42")); //$NON-NLS-1$
 	        panel.getAccessibleContext().setAccessibleName(SimpleAfirmaMessages.getString("SignPanel.43")); //$NON-NLS-1$
 	        panel.setToolTipText(SimpleAfirmaMessages.getString("SignPanel.42")); //$NON-NLS-1$
@@ -1040,7 +1081,7 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 	        final Color lineBorderColor = LookAndFeelManager.WINDOWS_HIGH_CONTRAST ? Color.WHITE
 	        		: themeBorder != null ? themeBorder : Color.GRAY;
 	        // Borde discontinuo para indicar que es una zona donde soltar ficheros
-	        this.filePanel.setBorder(BorderFactory.createDashedBorder(lineBorderColor, 3f, 3f));
+	        this.filePanel.setBorder(BorderFactory.createDashedBorder(lineBorderColor, 1.5f, 6f, 4f, true));
 
 	        this.filePanel.getHorizontalScrollBar().setUnitIncrement(30);
 	        this.filePanel.getVerticalScrollBar().setUnitIncrement(30);
@@ -1065,8 +1106,9 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 
 	        this.add(this.filePanel, BorderLayout.CENTER);
 
-	        final JPanel buttonPanel = new JPanel(true);
-	        this.signButton.setMargin(new Insets(0, 30, 0, 30));
+	        final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 0, 0), true);
+	        this.signButton.setMargin(new Insets(8, 36, 8, 36));
+	        this.signButton.putClientProperty("FlatLaf.style", PRIMARY_BUTTON_STYLE); //$NON-NLS-1$
            	this.signButton.setText(SimpleAfirmaMessages.getString("SignPanel.45")); //$NON-NLS-1$
 
 	        this.signButton.setMnemonic('F');
@@ -1084,7 +1126,7 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 	            this.setBackground(LookAndFeelManager.DEFAULT_COLOR);
 	            panel.setBackground(LookAndFeelManager.DEFAULT_COLOR);
 	            final Color hintColor = UIManager.getColor("Label.disabledForeground"); //$NON-NLS-1$
-	            panel.setForeground(hintColor != null ? hintColor : Color.GRAY);
+	            hintLabel.setForeground(hintColor != null ? hintColor : Color.GRAY);
 	            buttonPanel.setBackground(LookAndFeelManager.DEFAULT_COLOR);
 	        }
 
