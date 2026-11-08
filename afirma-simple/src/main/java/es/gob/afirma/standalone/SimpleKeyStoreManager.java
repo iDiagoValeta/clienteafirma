@@ -52,7 +52,7 @@ public final class SimpleKeyStoreManager {
      * @throws NoDnieFoundException Si se obliga al uso de DNIe pero este no se proporciona.
      * @throws KeystoreAlternativeException
      */
-    static AOKeyStoreManager getKeyStore(final boolean dnie, final boolean forced, final Component parent)
+    public static AOKeyStoreManager getKeyStore(final boolean dnie, final boolean forced, final Component parent)
     		throws AOKeyStoreManagerException, NoDnieFoundException, KeystoreAlternativeException {
 
     	// -- Se ha habilitado el uso de DNIe --

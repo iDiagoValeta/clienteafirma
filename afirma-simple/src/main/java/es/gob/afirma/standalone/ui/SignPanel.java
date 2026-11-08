@@ -486,7 +486,7 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 		 return resultFiles.toArray(new File[resultFiles.size()]);
 	 }
 
-	 private static SignOperationConfig prepareSignConfig(final File dataFile) throws IOException {
+	 static SignOperationConfig prepareSignConfig(final File dataFile) throws IOException {
 
 		 final byte[] data;
 		 try (final InputStream fis = new FileInputStream(dataFile)) {
@@ -506,7 +506,7 @@ public final class SignPanel extends JPanel implements LoadDataFileListener, Sig
 		 return config;
 	 }
 
-	 private static SignOperationConfig prepareSignConfig(final File dataFile, final SignOperationConfig signConfig) throws IOException {
+	 static SignOperationConfig prepareSignConfig(final File dataFile, final SignOperationConfig signConfig) throws IOException {
 
 		 final byte[] data;
 		 try (final InputStream fis = new FileInputStream(dataFile)) {

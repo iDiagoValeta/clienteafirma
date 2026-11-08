@@ -1050,6 +1050,14 @@ public final class SimpleAfirma implements PropertyChangeListener, WindowListene
 							JOptionPane.WARNING_MESSAGE, e);
 				}
 
+				// Interfaz Compose por defecto; la Swing clasica sigue disponible con -Dafirma.ui=swing
+				if (es.gob.afirma.standalone.compose.ComposeLauncher.isEnabled()) {
+					LOGGER.info("Iniciando interfaz Compose"); //$NON-NLS-1$
+					ProgressInfoDialogManager.hideProgressDialog();
+					es.gob.afirma.standalone.compose.ComposeLauncher.launch(saf.ksManager, null);
+					return;
+				}
+
 				LOGGER.info("Iniciando entorno grafico"); //$NON-NLS-1$
 				saf.initGUI(null, null);
 
