@@ -23,6 +23,8 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.fonts.inter.FlatInterFont;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import es.gob.afirma.core.misc.Platform;
@@ -145,15 +147,26 @@ public final class LookAndFeelManager {
     	// Tema plano y moderno (FlatLaf), en version clara u oscura segun el tema del sistema.
     	// FlatLaf ademas escala correctamente en pantallas HiDPI.
     	try {
+    		// Inter: tipografia de interfaz legible a tamanos pequenos, empaquetada con la aplicacion
+    		FlatInterFont.install();
+    		FlatLaf.setPreferredFontFamily(FlatInterFont.FAMILY);
+    		// Paleta grafito monocroma: el acento (boton principal, foco, seleccion) es gris,
+    		// oscuro sobre tema claro y medio sobre tema oscuro para mantener el contraste
+    		final java.util.Map<String, String> extra = new java.util.HashMap<>();
+    		extra.put("@accentColor", GNOME_DARK_MODE ? "#6B6B6B" : "#2B2B2B"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    		extra.put("defaultFont", "+1"); //$NON-NLS-1$ //$NON-NLS-2$
+    		extra.put("Button.arc", "10"); //$NON-NLS-1$ //$NON-NLS-2$
+    		extra.put("Component.arc", "10"); //$NON-NLS-1$ //$NON-NLS-2$
+    		extra.put("Button.margin", "6,18,6,18"); //$NON-NLS-1$ //$NON-NLS-2$
+    		extra.put("Component.focusWidth", "1"); //$NON-NLS-1$ //$NON-NLS-2$
+    		extra.put("MenuBar.itemMargins", "4,10,4,10"); //$NON-NLS-1$ //$NON-NLS-2$
+    		FlatLaf.setGlobalExtraDefaults(extra);
     		if (GNOME_DARK_MODE) {
     			FlatDarkLaf.setup();
     		}
     		else {
     			FlatLightLaf.setup();
     		}
-    		// Ajustes para dar aire a la interfaz
-    		UIManager.put("Button.arc", Integer.valueOf(6)); //$NON-NLS-1$
-    		UIManager.put("Component.arc", Integer.valueOf(6)); //$NON-NLS-1$
     		UIManager.put("ScrollBar.showButtons", Boolean.FALSE); //$NON-NLS-1$
     		UIManager.put("Button.defaultButtonFollowsFocus", Boolean.TRUE); //$NON-NLS-1$
     	}
